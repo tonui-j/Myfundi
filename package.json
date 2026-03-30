@@ -1,0 +1,17 @@
+{
+  "name": "myfundi-node-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node.js backend for MyFundi with PHP-compatible routes",
+  "main": "node/server.js",
+  "scripts": {
+    "start": "node node/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "mysql2": "^3.14.5",
+    "nodemailer": "^8.0.4"
+  }
+}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Book Service - MyFundi</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="booking">
+  <header class="topbar">
+    <a class="brand" href="index.html">MyFundi</a>
+    <nav class="topnav">
+      <a href="index.html">Find Workers</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+    <a class="ghost-btn" href="login.html">Sign In</a>
+  </header>
+
+  <main class="booking-page">
+    <section id="bookingWorkerCard" class="booking-worker-card"></section>
+    <section class="booking-form-card">
+      <h2 id="bookingTitle">Book Service</h2>
+      <form id="bookingForm" class="booking-form">
+        <input type="hidden" id="worker_id" name="worker_id" required>
+        <div class="two-col">
+          <label for="full_name">Full Name *</label>
+          <label for="client_phone">Phone Number *</label>
+          <input type="text" id="full_name" required>
+          <input type="tel" id="client_phone" name="client_phone" required>
+        </div>
+
+        <label for="client_email">Email Address *</label>
+        <input type="email" id="client_email" required>
+
+        <label for="service_address">Complete Address *</label>
+        <textarea id="service_address" rows="3" required></textarea>
+
+        <label for="description">Service Details *</label>
+        <textarea id="description" name="description" rows="4" required></textarea>
+
+        <div class="two-col">
+          <label for="date">Preferred Date *</label>
+          <label for="time">Preferred Time *</label>
+          <input type="date" id="date" name="date" required>
+          <input type="time" id="time" name="time" required>
+        </div>
+
+        <button class="btn" type="submit">Submit Booking Request</button>
+      </form>
+      <p id="bookingMessage" class="form-message muted"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">MyFundi booking</footer>
+  <script src="assets/js/script.js"></script>
+</body>
+</html>

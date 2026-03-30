@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MyFundi - Find Workers in Kajiado</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+  <header class="topbar">
+    <a class="brand" href="index.html">MyFundi</a>
+    <nav class="topnav">
+      <a href="#services">Services</a>
+      <a href="#workers">Find Workers</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="ghost-btn" href="login.html">Sign In</a>
+  </header>
+
+  <section class="hero" id="services">
+    <div class="hero-overlay">
+      <div class="hero-inner">
+        <h1>Find Trusted Workers in <span>Kajiado</span></h1>
+        <p>Connect with verified plumbers, electricians, carpenters, and painters for all your home and office needs</p>
+        <form id="heroSearchForm" class="hero-search">
+          <input id="homeKeyword" type="text" placeholder="What service do you need?">
+          <select id="homeService">
+            <option value="">All Services</option>
+          </select>
+          <button type="submit">Search Workers</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="workers-hero" id="workers">
+    <h2>Find Workers in Kajiado</h2>
+    <p id="workersCount">0 verified workers available</p>
+  </section>
+
+  <section class="filters-row">
+    <input id="filterKeyword" type="text" placeholder="Search workers...">
+    <select id="filterService">
+      <option value="">All Services</option>
+    </select>
+    <select id="filterLocation">
+      <option value="">All Locations</option>
+    </select>
+    <select id="filterSort">
+      <option value="rating">Highest Rated</option>
+      <option value="price_asc">Lowest Price</option>
+    </select>
+  </section>
+
+  <main class="results-wrap">
+    <section id="results" class="worker-grid"></section>
+  </main>
+
+  <section id="about" class="info-section about-section">
+    <div class="info-inner">
+      <h2>About Us - MyFundi</h2>
+      <p>Welcome to MyFundi - your reliable platform for connecting with skilled professionals near you.</p>
+      <p>Finding a trustworthy fundi should not be stressful or time-consuming. MyFundi was built to simplify this process by bringing together customers and verified service providers in one easy-to-use platform. Whether you need repairs, installations, or maintenance services, MyFundi ensures you get the right expert for the job - quickly and confidently.</p>
+      <p>Our mission is to make skilled services accessible, transparent, and dependable for everyone, while empowering fundis to grow their businesses through digital visibility.</p>
+
+      <h3>Why Choose MyFundi?</h3>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <h4>Verified Workers</h4>
+          <p>Every fundi on our platform goes through a verification process to ensure they are qualified, reliable, and trustworthy.</p>
+        </article>
+        <article class="feature-card">
+          <h4>Real Reviews</h4>
+          <p>We promote transparency through genuine customer feedback, helping you make informed decisions based on real experiences.</p>
+        </article>
+        <article class="feature-card">
+          <h4>Dispute Support</h4>
+          <p>In case something does not go as expected, our support team is ready to step in and help resolve issues fairly and quickly.</p>
+        </article>
+      </div>
+
+      <h3>Our Impact</h3>
+      <p>We are proud of the growing community we are building:</p>
+      <div class="impact-grid">
+        <article class="impact-card">
+          <strong>500+</strong>
+          <span>Skilled Workers</span>
+        </article>
+        <article class="impact-card">
+          <strong>2000+</strong>
+          <span>Successful Bookings</span>
+        </article>
+        <article class="impact-card">
+          <strong>1000+</strong>
+          <span>Happy Customers</span>
+        </article>
+        <article class="impact-card">
+          <strong>Multiple</strong>
+          <span>Service Categories</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works" class="info-section how-section">
+    <div class="info-inner">
+      <h2>How It Works</h2>
+      <p>Getting help on MyFundi is simple:</p>
+      <div class="steps-grid">
+        <article class="step-card">
+          <div class="step-badge">1</div>
+          <h3>Search</h3>
+          <p>Browse or search for skilled professionals based on your needs and location.</p>
+        </article>
+        <article class="step-card">
+          <div class="step-badge">2</div>
+          <h3>Book</h3>
+          <p>Choose a fundi, compare reviews, and schedule a service at your convenience.</p>
+        </article>
+        <article class="step-card">
+          <div class="step-badge">3</div>
+          <h3>Get It Done</h3>
+          <p>Sit back and relax while the job gets done professionally and efficiently.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="info-section contact-section">
+    <div class="info-inner contact-grid">
+      <article class="contact-card">
+        <h2>Contact Us - MyFundi</h2>
+        <p>Have questions, feedback, or need assistance? We are here to help.</p>
+        <h3>Contact Details</h3>
+        <p><strong>Email:</strong> myfundisupport@gmail.com</p>
+        <p><strong>Phone:</strong> +254 784 000 000</p>
+        <p><strong>Location:</strong> Nairobi, Kenya</p>
+        <h3>Support Hours</h3>
+        <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
+        <p>Saturday: 9:00 AM - 2:00 PM</p>
+        <p>Sunday &amp; Public Holidays: Closed</p>
+      </article>
+
+      <article class="contact-card">
+        <h3>Send Us a Message</h3>
+        <form id="contactForm" class="contact-form">
+          <label for="contact_name">Your Name</label>
+          <input id="contact_name" name="name" type="text" required placeholder="Enter your full name">
+
+          <label for="contact_email">Your Email</label>
+          <input id="contact_email" name="email" type="email" required placeholder="Enter your email address">
+
+          <label for="contact_subject">Subject Category</label>
+          <select id="contact_subject" name="subject" required>
+            <option value="">Select a category</option>
+            <option value="general">General Question</option>
+            <option value="booking">Booking Help</option>
+            <option value="worker">Worker Verification</option>
+            <option value="dispute">Dispute Support</option>
+            <option value="feedback">Feedback</option>
+          </select>
+
+          <label for="contact_message">Message</label>
+          <textarea id="contact_message" name="message" required placeholder="Type your message"></textarea>
+
+          <button class="btn" type="submit">Send Message</button>
+          <p id="contactFormMessage" class="muted"></p>
+        </form>
+      </article>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div>MyFundi - Skilled services made accessible, transparent, and dependable.</div>
+  </footer>
+  <script src="assets/js/script.js"></script>
+</body>
+</html>

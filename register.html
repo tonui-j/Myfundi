@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Register - MYFUNDI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="register">
+  <header class="topbar">
+    <a class="brand" href="index.html">MyFundi</a>
+    <nav class="topnav">
+      <a href="index.html">Home</a>
+      <a href="index.html#workers">Find Workers</a>
+      <a href="booking.html">Book Service</a>
+    </nav>
+    <a class="ghost-btn" href="login.html">Sign In</a>
+  </header>
+
+  <main class="auth-page">
+    <section class="auth-card">
+      <h2>Create MyFundi Account</h2>
+      <p class="muted">Join to connect with trusted workers in Kajiado.</p>
+      <form id="registerForm">
+        <label for="display_name">Display Name</label>
+        <input type="text" id="display_name" name="display_name" required>
+
+        <label for="reg_username">Username</label>
+        <input type="text" id="reg_username" name="username" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="reg_password">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="reg_password" name="password" required>
+          <button type="button" class="pw-toggle" data-target="reg_password" data-state="hidden" aria-label="Show password">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+
+        <label for="account_role">Sign up as</label>
+        <select id="account_role" name="role" required>
+          <option value="customer">Client</option>
+          <option value="worker">Worker</option>
+        </select>
+
+        <button class="btn" type="submit">Register</button>
+      </form>
+      <p id="registerMessage" class="muted"></p>
+      <p class="auth-switch">Already have an account? <a href="login.html">Sign in</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">MyFundi authentication</footer>
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,465 @@
+ <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin - MYFUNDI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=20260311a">
+  <style>
+    .admin-report-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--blue);
+      color: #fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .admin-report-btn {
+      border: 0;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--blue);
+      font-weight: 700;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+
+    #adminReportPrint {
+      display: none;
+      background: #fff;
+      color: #0f2140;
+      padding: 22px;
+    }
+
+    .report-head {
+      border-bottom: 2px solid #dbe5f3;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .report-head h1 {
+      margin: 0;
+      color: var(--blue);
+    }
+
+    .report-meta {
+      margin-top: 8px;
+      color: #486085;
+    }
+
+    .report-section {
+      margin-top: 18px;
+    }
+
+    .report-section h2 {
+      margin: 0 0 10px;
+      color: #17396f;
+    }
+
+    .report-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .report-stat {
+      border: 1px solid #dbe5f3;
+      border-radius: 10px;
+      padding: 12px;
+      background: #f8fbff;
+      text-align: center;
+    }
+
+    .report-stat span {
+      color: #607491;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .report-stat strong {
+      color: var(--blue);
+      display: block;
+    }
+
+    .report-table-wrap {
+      border: 1px solid #e3ebf7;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .report-table-wrap .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .report-table-wrap .admin-table th,
+    .report-table-wrap .admin-table td {
+      border-bottom: 1px solid #eef2f8;
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .report-confidential {
+      margin-top: 20px;
+      padding-top: 12px;
+      border-top: 1px solid #dbe5f3;
+      color: #5f7496;
+      text-align: center;
+    }
+
+    @media print {
+      .topbar,
+      .site-footer,
+      main {
+        display: none !important;
+      }
+
+      #adminReportPrint {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body data-page="admin">
+  <header class="topbar">
+    <a class="brand" href="index.html">MyFundi</a>
+    <nav class="topnav">
+      <a href="index.html">Home</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+    <a class="ghost-btn" href="/api/auth/logout">Logout</a>
+  </header>
+
+  <main class="admin-layout">
+    <aside class="admin-sidebar">
+      <h2>Admin Dashboard</h2>
+      <nav class="admin-sidebar-nav">
+        <a href="#overview"><i class="fa-solid fa-chart-simple"></i> Overview</a>
+        <a href="#workers"><i class="fa-solid fa-user-gear"></i> Workers</a>
+        <a href="#clients"><i class="fa-solid fa-users"></i> Clients</a>
+        <a href="#bookings"><i class="fa-solid fa-calendar-check"></i> Bookings</a>
+        <a href="#pending"><i class="fa-solid fa-user-clock"></i> Pending Verification</a>
+        <a href="#disputes"><i class="fa-solid fa-triangle-exclamation"></i> Disputes</a>
+        <a href="#audit"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log</a>
+      </nav>
+    </aside>
+
+    <section class="admin-main">
+      <div class="admin-report-bar">
+        <div><i class="fa-solid fa-file-arrow-down"></i> Download Report</div>
+        <button id="downloadReportBtn" type="button" class="admin-report-btn">Save Dashboard as PDF</button>
+      </div>
+      <p id="adminMessage" class="admin-message muted"></p>
+
+      <section id="overview" class="admin-section">
+        <div class="admin-section-head">
+          <h2>Overview Stats</h2>
+          <span id="overviewLoading" class="muted">Loading...</span>
+        </div>
+        <div class="admin-stats-grid">
+          <article class="admin-stat-card">
+            <span>Total Clients</span>
+            <strong id="statClients">0</strong>
+          </article>
+          <article class="admin-stat-card">
+            <span>Total Workers</span>
+            <strong id="statWorkers">0</strong>
+          </article>
+          <article class="admin-stat-card">
+            <span>Total Bookings</span>
+            <strong id="statBookings">0</strong>
+          </article>
+          <article class="admin-stat-card">
+            <span>Pending Verifications</span>
+            <strong id="statPending">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section id="workers" class="admin-section">
+        <div class="admin-section-head">
+          <h2>Worker Management</h2>
+          <span id="workersLoading" class="muted">Loading...</span>
+        </div>
+        <div class="admin-controls">
+          <input id="workersSearch" type="search" placeholder="Search by worker name or skill">
+          <select id="workersVerifiedFilter">
+            <option value="all">All statuses</option>
+            <option value="verified">Verified</option>
+            <option value="unverified">Unverified</option>
+          </select>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Skill</th>
+                <th>Location</th>
+                <th>Verified</th>
+                <th>Date Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="workersTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="clients" class="admin-section">
+        <div class="admin-section-head">
+          <h2>Client Management</h2>
+          <span id="clientsLoading" class="muted">Loading...</span>
+        </div>
+        <div class="admin-controls">
+          <input id="clientsSearch" type="search" placeholder="Search by client name or email">
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Date Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clientsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="bookings" class="admin-section">
+        <div class="admin-section-head">
+          <h2>Booking Management</h2>
+          <span id="bookingsLoading" class="muted">Loading...</span>
+        </div>
+        <div class="admin-controls">
+          <select id="bookingsStatusFilter">
+            <option value="all">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="declined">Declined</option>
+          </select>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Worker</th>
+                <th>Client</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="pending" class="admin-section">
+        <div class="admin-section-head">
+          <h2>Pending Verification</h2>
+          <span id="pendingLoading" class="muted"></span>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Skill</th><th>Location</th><th>Date Joined</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pendingTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="disputes" class="admin-section">
+        <div class="admin-section-head">
+          <h2>Disputes</h2>
+          <span id="disputesLoading" class="muted"></span>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Worker</th><th>Client</th><th>Description</th><th>Status</th><th>Date</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="disputesTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="audit" class="admin-section">
+        <div class="admin-section-head">
+          <h2>Audit Log</h2>
+          <span id="auditLoading" class="muted"></span>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Action</th><th>Target Type</th><th>Target ID</th><th>Detail</th><th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <section id="adminReportPrint" aria-hidden="true">
+    <header class="report-head">
+      <h1>MyFundi Admin Dashboard Report</h1>
+      <div class="report-meta">
+        <div>Generated: <strong id="reportTimestamp">-</strong></div>
+        <div>Source: Live Admin Dashboard Data</div>
+      </div>
+    </header>
+
+    <section class="report-section">
+      <h2>Overview Stats</h2>
+      <div class="report-stats">
+        <article class="report-stat">
+          <span>Total Clients</span>
+          <strong id="reportStatClients">0</strong>
+        </article>
+        <article class="report-stat">
+          <span>Total Workers</span>
+          <strong id="reportStatWorkers">0</strong>
+        </article>
+        <article class="report-stat">
+          <span>Total Bookings</span>
+          <strong id="reportStatBookings">0</strong>
+        </article>
+        <article class="report-stat">
+          <span>Pending Verifications</span>
+          <strong id="reportStatPending">0</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="report-section">
+      <h2>Workers</h2>
+      <div id="reportWorkersTableWrap" class="report-table-wrap"></div>
+    </section>
+
+    <section class="report-section">
+      <h2>Clients</h2>
+      <div id="reportClientsTableWrap" class="report-table-wrap"></div>
+    </section>
+
+    <section class="report-section">
+      <h2>Bookings</h2>
+      <div id="reportBookingsTableWrap" class="report-table-wrap"></div>
+    </section>
+
+    <section class="report-section">
+      <h2>Disputes</h2>
+      <div id="reportDisputesTableWrap" class="report-table-wrap"></div>
+    </section>
+
+    <footer class="report-confidential">
+      Confidential: This report contains sensitive MyFundi operational data and is intended for authorized admin use only.
+    </footer>
+  </section>
+
+  <footer class="site-footer">MYFUNDI local prototype</footer>
+  <script src="assets/js/script.js?v=20260311a"></script>
+  <script>
+    (function () {
+      function textById(id) {
+        var el = document.getElementById(id);
+        return el ? String(el.textContent || "").trim() : "";
+      }
+
+      function fillStats() {
+        document.getElementById("reportStatClients").textContent = textById("statClients") || "0";
+        document.getElementById("reportStatWorkers").textContent = textById("statWorkers") || "0";
+        document.getElementById("reportStatBookings").textContent = textById("statBookings") || "0";
+        document.getElementById("reportStatPending").textContent = textById("statPending") || "0";
+        document.getElementById("reportTimestamp").textContent = new Date().toLocaleString();
+      }
+
+      function normalizeClonedTable(table) {
+        var clone = table.cloneNode(true);
+        var headerCells = Array.from(clone.querySelectorAll("thead th"));
+        var actionIndexes = [];
+        headerCells.forEach(function (th, index) {
+          if (String(th.textContent || "").trim().toLowerCase() === "actions") {
+            actionIndexes.push(index);
+          }
+        });
+
+        actionIndexes.reverse().forEach(function (idx) {
+          clone.querySelectorAll("tr").forEach(function (row) {
+            if (row.children[idx]) row.removeChild(row.children[idx]);
+          });
+        });
+
+        clone.querySelectorAll("button").forEach(function (btn) {
+          btn.remove();
+        });
+        clone.querySelectorAll("select").forEach(function (select) {
+          var span = document.createElement("span");
+          span.textContent = select.options[select.selectedIndex]
+            ? select.options[select.selectedIndex].textContent
+            : "";
+          select.replaceWith(span);
+        });
+        clone.querySelectorAll("input").forEach(function (input) {
+          var value = document.createElement("span");
+          value.textContent = input.value || "";
+          input.replaceWith(value);
+        });
+
+        return clone;
+      }
+
+      function copyTable(sourceSelector, targetWrapId) {
+        var sourceTable = document.querySelector(sourceSelector);
+        var target = document.getElementById(targetWrapId);
+        if (!target) return;
+        target.innerHTML = "";
+        if (!sourceTable) {
+          target.innerHTML = '<p class="muted" style="margin:10px">No data available.</p>';
+          return;
+        }
+        target.appendChild(normalizeClonedTable(sourceTable));
+      }
+
+      function buildReportFromDashboard() {
+        fillStats();
+        copyTable("#workers table.admin-table", "reportWorkersTableWrap");
+        copyTable("#clients table.admin-table", "reportClientsTableWrap");
+        copyTable("#bookings table.admin-table", "reportBookingsTableWrap");
+        copyTable("#disputes table.admin-table", "reportDisputesTableWrap");
+      }
+
+      function init() {
+        var button = document.getElementById("downloadReportBtn");
+        if (!button) return;
+        button.addEventListener("click", function () {
+          buildReportFromDashboard();
+          window.print();
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", init);
+    })();
+  </script>
+</body>
+</html>

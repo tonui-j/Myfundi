@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login - MYFUNDI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="login">
+  <header class="topbar">
+    <a class="brand" href="index.html">MyFundi</a>
+    <nav class="topnav">
+      <a href="index.html">Home</a>
+      <a href="index.html#workers">Find Workers</a>
+      <a href="booking.html">Book Service</a>
+    </nav>
+    <a class="ghost-btn" href="register.html">Register</a>
+  </header>
+
+  <main class="auth-page">
+    <section class="auth-card">
+      <h2>Sign In to MyFundi</h2>
+      <p class="muted">Welcome back. Continue to book and manage services.</p>
+      <form id="loginForm">
+        <label for="username">Username or Email</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="password" name="password" required>
+          <button type="button" class="pw-toggle" data-target="password" data-state="hidden" aria-label="Show password">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+
+        <div style="text-align:right; margin: 6px 0 14px;">
+          <a href="forgot-password.html" style="color: var(--blue); text-decoration: none; font-size: 0.9rem;">Forgot password?</a>
+        </div>
+
+        <button class="btn" type="submit">Sign In</button>
+      </form>
+      <p id="loginMessage" class="muted"></p>
+      <p class="auth-switch">No account yet? <a href="register.html">Create one</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">MyFundi authentication</footer>
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
