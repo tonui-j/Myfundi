@@ -22,6 +22,12 @@ function uniqueValues(list) {
   return [...new Set(list.filter(Boolean))].sort((a, b) => a.localeCompare(b));
 }
 
+function normalizeBookingStatus(statusValue) {
+  const normalized = String(statusValue || "").trim().toLowerCase();
+  if (normalized === "complete") return "completed";
+  return normalized;
+}
+
 function setSelectOptions(select, values, label) {
   if (!select) return;
   select.innerHTML =
@@ -343,29 +349,44 @@ async function initUserProfile() {
       const bookingsMarkup = bookings.length
         ? bookings
             .map(
-              (booking) => `
-                <article class="worker-booking-card">
-                  <div class="worker-booking-head">
-                    <h3>${escapeHtml(booking.client_name)}</h3>
-                    <span class="booking-status booking-status-${escapeHtml(booking.status)}">${escapeHtml(booking.status)}</span>
-                  </div>
-                  <div class="worker-booking-meta" style="display:grid;gap:6px;margin:10px 0">
-                    <div><span class="user-field-label">Phone: </span>${escapeHtml(booking.client_phone || "")}</div>
-                    ${booking.client_email ? `<div><span class="user-field-label">Email: </span>${escapeHtml(booking.client_email)}</div>` : ""}
-                    ${booking.service_address ? `<div><span class="user-field-label">Address: </span>${escapeHtml(booking.service_address)}</div>` : ""}
-                    <div><span class="user-field-label">Date: </span>${escapeHtml(String(booking.date || ""))}</div>
-                    <div><span class="user-field-label">Time: </span>${escapeHtml(String(booking.time || ""))}</div>
-                    <div><span class="user-field-label">Booking ID: </span>#${booking.id}</div>
-                    <div><span class="user-field-label">Received: </span>${new Date(booking.created_at).toLocaleDateString()}</div>
-                  </div>
-                  <div class="user-field-label" style="margin-bottom:6px">Service needed:</div>
-                  <p class="worker-booking-desc">${escapeHtml(booking.description || "")}</p>
-                  <div class="worker-booking-actions">
-                    <button class="btn" type="button" data-booking-status="accept" data-booking-id="${booking.id}" ${booking.status !== "pending" ? "disabled" : ""}>Accept</button>
-                    <button class="btn alt" type="button" data-booking-status="decline" data-booking-id="${booking.id}" ${booking.status !== "pending" ? "disabled" : ""}>Decline</button>
-                  </div>
-                </article>
-              `
+              (booking) => {
+                const status = normalizeBookingStatus(booking.status);
+                const statusClass = ["pending", "approved", "declined", "completed"].includes(status) ? status : "pending";
+                const workerActionsMarkup =
+                  status === "pending"
+                    ? `
+                      <button class="btn" type="button" data-booking-status="accept" data-booking-id="${booking.id}">Accept</button>
+                      <button class="btn alt" type="button" data-booking-status="decline" data-booking-id="${booking.id}">Decline</button>
+                    `
+                    : status === "approved"
+                      ? `<button class="btn btn-complete" type="button" data-booking-action="complete" data-booking-id="${booking.id}">Mark as Completed</button>`
+                      : status === "completed"
+                        ? '<span class="booking-status booking-status-completed">Completed &#10003;</span>'
+                        : '<span class="muted">No actions available</span>';
+
+                return `
+                  <article class="worker-booking-card">
+                    <div class="worker-booking-head">
+                      <h3>${escapeHtml(booking.client_name)}</h3>
+                      <span class="booking-status booking-status-${escapeHtml(statusClass)}">${escapeHtml(status)}</span>
+                    </div>
+                    <div class="worker-booking-meta" style="display:grid;gap:6px;margin:10px 0">
+                      <div><span class="user-field-label">Phone: </span>${escapeHtml(booking.client_phone || "")}</div>
+                      ${booking.client_email ? `<div><span class="user-field-label">Email: </span>${escapeHtml(booking.client_email)}</div>` : ""}
+                      ${booking.service_address ? `<div><span class="user-field-label">Address: </span>${escapeHtml(booking.service_address)}</div>` : ""}
+                      <div><span class="user-field-label">Date: </span>${escapeHtml(String(booking.date || ""))}</div>
+                      <div><span class="user-field-label">Time: </span>${escapeHtml(String(booking.time || ""))}</div>
+                      <div><span class="user-field-label">Booking ID: </span>#${booking.id}</div>
+                      <div><span class="user-field-label">Received: </span>${new Date(booking.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div class="user-field-label" style="margin-bottom:6px">Service needed:</div>
+                    <p class="worker-booking-desc">${escapeHtml(booking.description || "")}</p>
+                    <div class="worker-booking-actions">
+                      ${workerActionsMarkup}
+                    </div>
+                  </article>
+                `;
+              }
             )
             .join("")
         : '<p class="muted">No bookings received yet.</p>';
@@ -546,19 +567,29 @@ async function initUserProfile() {
         bookingsList.addEventListener("click", async (event) => {
           const target = event.target;
           if (!(target instanceof HTMLElement)) return;
-          const button = target.closest("[data-booking-status]");
+          const button = target.closest("[data-booking-status], [data-booking-action]");
           if (!(button instanceof HTMLButtonElement)) return;
 
           const bookingId = button.dataset.bookingId;
-          const status = button.dataset.bookingStatus;
-          if (!bookingId || !status) return;
+          if (!bookingId) return;
 
-          const res = await fetch(`api/worker/bookings/${bookingId}/status`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status }),
-            credentials: "same-origin"
-          });
+          let res;
+          if (button.dataset.bookingAction === "complete") {
+            res = await fetch(`api/bookings/${bookingId}/complete`, {
+              method: "PATCH",
+              credentials: "same-origin"
+            });
+          } else {
+            const status = button.dataset.bookingStatus;
+            if (!status) return;
+            res = await fetch(`api/worker/bookings/${bookingId}/status`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status }),
+              credentials: "same-origin"
+            });
+          }
+
           const text = await res.text();
           bookingsMessage.textContent = text;
           if (res.ok) await initUserProfile();
@@ -589,8 +620,20 @@ async function initUserProfile() {
       const bookingsMarkup = bookings.length
         ? bookings
             .map((booking) => {
-              const status = String(booking.status || "").toLowerCase();
+              const status = normalizeBookingStatus(booking.status);
               const statusClass = ["pending", "approved", "declined", "completed"].includes(status) ? status : "pending";
+              const isCompleted = status === "completed";
+              const canShowReviewAction = Boolean(booking.can_review) && !isCompleted;
+              const canShowDisputeAction = status === "approved";
+              const clientActionsMarkup = isCompleted
+                ? '<span class="booking-status booking-status-completed">Completed &#10003;</span>'
+                : `
+                    ${status === "pending" ? `<button class="btn alt" type="button" data-client-booking-action="cancel" data-booking-id="${booking.id}">Cancel</button>` : ""}
+                    ${canShowDisputeAction ? `<button class="btn alt" type="button" data-client-booking-action="toggle-dispute" data-booking-id="${booking.id}">Raise Dispute</button>` : ""}
+                    ${canShowReviewAction ? `<button class="btn" type="button" data-client-booking-action="toggle-review" data-booking-id="${booking.id}">Leave Review</button>` : ""}
+                    ${booking.reviewed ? '<span class="muted">Review submitted</span>' : ""}
+                  `;
+
               return `
                 <article class="worker-booking-card">
                   <div class="worker-booking-head">
@@ -600,44 +643,45 @@ async function initUserProfile() {
                   <div class="worker-booking-meta">${escapeHtml(booking.date || "")} ${escapeHtml(booking.time || "")}</div>
                   <p class="worker-booking-desc">${escapeHtml(booking.description || "")}</p>
                   <div class="worker-booking-actions client-booking-actions">
-                    ${status === "pending" ? `<button class="btn alt" type="button" data-client-booking-action="cancel" data-booking-id="${booking.id}">Cancel</button>` : ""}
-                    ${status === "approved" ? `<button class="btn alt" type="button" data-client-booking-action="toggle-dispute" data-booking-id="${booking.id}">Raise Dispute</button>` : ""}
-                    ${booking.can_review ? `<button class="btn" type="button" data-client-booking-action="toggle-review" data-booking-id="${booking.id}">Leave Review</button>` : ""}
-                    ${booking.reviewed ? '<span class="muted">Review submitted</span>' : ""}
+                    ${clientActionsMarkup}
                   </div>
-                  <form class="worker-profile-form client-review-form" data-review-form="${booking.id}" data-worker-id="${booking.worker_id}" data-booking-id="${booking.id}" hidden>
-                    <div class="user-profile-grid">
-                      <div class="user-field">
-                        <label class="user-field-label" for="review_rating_${booking.id}">Rating</label>
-                        <select id="review_rating_${booking.id}" name="rating" required>
-                          <option value="">Select rating</option>
-                          <option value="5">5 - Excellent</option>
-                          <option value="4">4 - Good</option>
-                          <option value="3">3 - Average</option>
-                          <option value="2">2 - Fair</option>
-                          <option value="1">1 - Poor</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="user-field">
-                      <label class="user-field-label" for="review_text_${booking.id}">Review</label>
-                      <textarea id="review_text_${booking.id}" name="review" rows="3" required placeholder="Share your experience"></textarea>
-                    </div>
-                    <div class="worker-profile-actions">
-                      <button class="btn" type="submit">Submit Review</button>
-                      <button class="btn alt" type="button" data-client-booking-action="close-review" data-booking-id="${booking.id}">Close</button>
-                    </div>
-                  </form>
-                  <form class="worker-profile-form client-dispute-form" data-dispute-form="${booking.id}" data-worker-id="${booking.worker_id}" data-booking-id="${booking.id}" hidden>
-                    <div class="user-field">
-                      <label class="user-field-label" for="dispute_text_${booking.id}">Dispute description</label>
-                      <textarea id="dispute_text_${booking.id}" name="description" rows="3" required placeholder="Describe what happened"></textarea>
-                    </div>
-                    <div class="worker-profile-actions">
-                      <button class="btn" type="submit">Submit Dispute</button>
-                      <button class="btn alt" type="button" data-client-booking-action="close-dispute" data-booking-id="${booking.id}">Close</button>
-                    </div>
-                  </form>
+                  ${canShowReviewAction
+                    ? `<form class="worker-profile-form client-review-form" data-review-form="${booking.id}" data-worker-id="${booking.worker_id}" data-booking-id="${booking.id}" hidden>
+                        <div class="user-profile-grid">
+                          <div class="user-field">
+                            <label class="user-field-label" for="review_rating_${booking.id}">Rating</label>
+                            <select id="review_rating_${booking.id}" name="rating" required>
+                              <option value="">Select rating</option>
+                              <option value="5">5 - Excellent</option>
+                              <option value="4">4 - Good</option>
+                              <option value="3">3 - Average</option>
+                              <option value="2">2 - Fair</option>
+                              <option value="1">1 - Poor</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="user-field">
+                          <label class="user-field-label" for="review_text_${booking.id}">Review</label>
+                          <textarea id="review_text_${booking.id}" name="review" rows="3" required placeholder="Share your experience"></textarea>
+                        </div>
+                        <div class="worker-profile-actions">
+                          <button class="btn" type="submit">Submit Review</button>
+                          <button class="btn alt" type="button" data-client-booking-action="close-review" data-booking-id="${booking.id}">Close</button>
+                        </div>
+                      </form>`
+                    : ""}
+                  ${canShowDisputeAction
+                    ? `<form class="worker-profile-form client-dispute-form" data-dispute-form="${booking.id}" data-worker-id="${booking.worker_id}" data-booking-id="${booking.id}" hidden>
+                        <div class="user-field">
+                          <label class="user-field-label" for="dispute_text_${booking.id}">Dispute description</label>
+                          <textarea id="dispute_text_${booking.id}" name="description" rows="3" required placeholder="Describe what happened"></textarea>
+                        </div>
+                        <div class="worker-profile-actions">
+                          <button class="btn" type="submit">Submit Dispute</button>
+                          <button class="btn alt" type="button" data-client-booking-action="close-dispute" data-booking-id="${booking.id}">Close</button>
+                        </div>
+                      </form>`
+                    : ""}
                 </article>
               `;
             })
@@ -1094,18 +1138,74 @@ function initLogin() {
   });
 }
 
+function getPasswordRequirementState(passwordValue) {
+  const password = String(passwordValue || "");
+  return {
+    length: password.length >= 6,
+    case: /[a-z]/.test(password) && /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    symbol: /[^A-Za-z0-9]/.test(password)
+  };
+}
+
 function initRegister() {
   const form = document.getElementById("registerForm");
   const message = document.getElementById("registerMessage");
   if (!form || !message) return;
 
+  const passwordInput = document.getElementById("password") || document.getElementById("reg_password");
+  const requirementRows = {
+    length: document.getElementById("req-length"),
+    case: document.getElementById("req-case"),
+    number: document.getElementById("req-number"),
+    symbol: document.getElementById("req-symbol")
+  };
+
+  const hasRequirementRows = Object.values(requirementRows).every((row) => row instanceof HTMLElement);
+  const updateRequirementRow = (row, met) => {
+    if (!(row instanceof HTMLElement)) return;
+    row.classList.toggle("valid", met);
+    row.classList.toggle("invalid", !met);
+    const icon = row.querySelector(".req-icon");
+    if (icon) icon.textContent = met ? "✓" : "✗";
+  };
+
+  const updatePasswordRequirementUi = () => {
+    if (!(passwordInput instanceof HTMLInputElement)) return true;
+    const state = getPasswordRequirementState(passwordInput.value);
+    const allMet = Object.values(state).every(Boolean);
+
+    if (hasRequirementRows) {
+      updateRequirementRow(requirementRows.length, state.length);
+      updateRequirementRow(requirementRows.case, state.case);
+      updateRequirementRow(requirementRows.number, state.number);
+      updateRequirementRow(requirementRows.symbol, state.symbol);
+    }
+
+    passwordInput.classList.toggle("pw-valid", allMet);
+    passwordInput.classList.toggle("pw-invalid", !allMet);
+    return allMet;
+  };
+
+  if (passwordInput instanceof HTMLInputElement) {
+    updatePasswordRequirementUi();
+    passwordInput.addEventListener("input", updatePasswordRequirementUi);
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const allRequirementsMet = updatePasswordRequirementUi();
+    if (!allRequirementsMet) {
+      message.textContent = "Password does not meet all requirements.";
+      window.alert("Please meet all password requirements before submitting.");
+      return;
+    }
+
     const payload = {
       display_name: document.getElementById("display_name")?.value || "",
       username: document.getElementById("reg_username")?.value || "",
       email: document.getElementById("email")?.value || "",
-      password: document.getElementById("reg_password")?.value || "",
+      password: passwordInput instanceof HTMLInputElement ? passwordInput.value : "",
       role: document.getElementById("account_role")?.value || ""
     };
     const res = await fetch("api/auth/register", {

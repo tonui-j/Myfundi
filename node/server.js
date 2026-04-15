@@ -731,6 +731,62 @@ app.post("/api/worker/bookings/:id/status", async (req, res) => {
   }
 });
 
+app.patch("/api/bookings/:id/complete", async (req, res) => {
+  if (!req.session.user_id || req.session.role !== "worker") {
+    res.status(403).json({ error: "Forbidden - worker login required" });
+    return;
+  }
+
+  const bookingId = Number(req.params.id);
+  if (!bookingId) {
+    text(res, 400, "Invalid booking ID");
+    return;
+  }
+
+  const conn = await createDbConnection();
+  try {
+    const worker = await getCurrentWorker(conn, req.session.user_id);
+    if (!worker) {
+      text(res, 404, "Worker profile not found");
+      return;
+    }
+
+    const [rows] = await conn.execute(
+      "SELECT id, worker_id, status FROM bookings WHERE id = ? LIMIT 1",
+      [bookingId]
+    );
+    if (!rows.length) {
+      text(res, 404, "Booking not found");
+      return;
+    }
+
+    const booking = rows[0];
+    if (Number(booking.worker_id) !== Number(worker.id)) {
+      text(res, 403, "Only the assigned worker can complete this booking");
+      return;
+    }
+
+    const currentStatus = String(booking.status || "").toLowerCase();
+    if (currentStatus !== "approved") {
+      text(res, 400, `Only approved bookings can be completed (current status: ${currentStatus || "unknown"})`);
+      return;
+    }
+
+    const [result] = await conn.execute(
+      "UPDATE bookings SET status = 'completed' WHERE id = ? AND worker_id = ? AND status = 'approved'",
+      [bookingId, Number(worker.id)]
+    );
+    if (!result.affectedRows) {
+      text(res, 409, "Booking status changed before completion. Please refresh and try again.");
+      return;
+    }
+
+    text(res, 200, "Booking marked as completed");
+  } finally {
+    await conn.end();
+  }
+});
+
 app.get("/api/client/bookings", requireCustomer, async (req, res) => {
   const conn = await createDbConnection();
   try {

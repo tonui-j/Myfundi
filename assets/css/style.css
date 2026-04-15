@@ -401,6 +401,15 @@ a {
   color: var(--blue);
 }
 
+.btn-complete {
+  background: #16a34a;
+  color: #fff;
+}
+
+.btn-complete:hover {
+  background: #15803d;
+}
+
 .profile-page {
   padding: 14px 0 30px;
 }
@@ -735,6 +744,45 @@ html {
   color: inherit !important;
 }
 
+.password-requirements {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.req-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b42318;
+}
+
+.req-item .req-icon {
+  width: 18px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.req-item.valid {
+  color: #15803d;
+}
+
+.req-item.invalid {
+  color: #b42318;
+}
+
+#password.pw-valid {
+  border-color: #15803d !important;
+  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.14);
+}
+
+#password.pw-invalid {
+  border-color: #b42318 !important;
+  box-shadow: 0 0 0 2px rgba(180, 35, 24, 0.12);
+}
+
 .auth-page {
   min-height: calc(100vh - 180px);
   display: grid;
@@ -954,8 +1002,8 @@ html {
 }
 
 .booking-status-completed {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #dcfce7;
+  color: #166534;
 }
 
 .admin-layout {
