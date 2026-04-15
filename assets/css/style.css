@@ -38,8 +38,8 @@ a {
 }
 
 .brand {
-  font-size: 56px;
-  line-height: 1;
+  font-size: 50px !important;
+  line-height: normal;
   text-decoration: none;
   color: var(--blue);
   font-weight: 800;
@@ -1201,5 +1201,70 @@ html {
   .stat strong,
   .stat span {
     font-size: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .topnav {
+    display: none;
+  }
+
+  .brand {
+    font-size: 36px;
+  }
+
+  .topbar .ghost-btn {
+    width: auto;
+    min-height: 44px;
+    padding: 8px 14px;
+  }
+
+  .hero-search,
+  .filters-row,
+  .feature-grid,
+  .impact-grid,
+  .steps-grid,
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-search,
+  .filters-row {
+    gap: 12px;
+  }
+
+  .hero-search input,
+  .hero-search select,
+  .hero-search button,
+  .filters-row input,
+  .filters-row select,
+  .filters-row button,
+  .booking-form input,
+  .booking-form textarea,
+  .booking-form select,
+  #loginForm input,
+  #registerForm input,
+  #registerForm select,
+  .contact-form input,
+  .contact-form select,
+  .contact-form textarea,
+  input,
+  select,
+  button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .feature-card,
+  .impact-card,
+  .step-card,
+  .contact-card,
+  .card {
+    width: 100%;
   }
 }
