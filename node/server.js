@@ -1519,7 +1519,7 @@ app.patch("/api/admin/bookings/:id/status", requireAdminApi, async (req, res) =>
     text(res, 400, "Invalid booking ID");
     return;
   }
-  if (!["pending", "approved", "declined"].includes(status)) {
+  if (!["pending", "approved", "declined", "completed"].includes(status)) {
     text(res, 400, "Invalid booking status");
     return;
   }

@@ -623,11 +623,10 @@ async function initUserProfile() {
               const status = normalizeBookingStatus(booking.status);
               const statusClass = ["pending", "approved", "declined", "completed"].includes(status) ? status : "pending";
               const isCompleted = status === "completed";
-              const canShowReviewAction = Boolean(booking.can_review) && !isCompleted;
-              const canShowDisputeAction = status === "approved";
-              const clientActionsMarkup = isCompleted
-                ? '<span class="booking-status booking-status-completed">Completed &#10003;</span>'
-                : `
+              const canShowReviewAction = Boolean(booking.can_review);
+              const canShowDisputeAction = ["approved", "completed"].includes(status);
+              const clientActionsMarkup = `
+                    ${isCompleted ? '<span class="booking-status booking-status-completed">Completed &#10003;</span>' : ""}
                     ${status === "pending" ? `<button class="btn alt" type="button" data-client-booking-action="cancel" data-booking-id="${booking.id}">Cancel</button>` : ""}
                     ${canShowDisputeAction ? `<button class="btn alt" type="button" data-client-booking-action="toggle-dispute" data-booking-id="${booking.id}">Raise Dispute</button>` : ""}
                     ${canShowReviewAction ? `<button class="btn" type="button" data-client-booking-action="toggle-review" data-booking-id="${booking.id}">Leave Review</button>` : ""}
@@ -1411,13 +1410,13 @@ async function initAdmin() {
     const statusFilter = bookingsStatusFilter.value;
     const list = state.bookings.filter((booking) => {
       if (statusFilter === "all") return true;
-      return String(booking.status || "").toLowerCase() === statusFilter;
+      return normalizeBookingStatus(booking.status) === statusFilter;
     });
 
     bookingsTableBody.innerHTML = list.length
       ? list
           .map((booking) => {
-            const status = String(booking.status || "").toLowerCase();
+            const status = normalizeBookingStatus(booking.status);
             return `
               <tr>
                 <td>${escapeHtml(booking.worker_name || "")}</td>
@@ -1432,6 +1431,7 @@ async function initAdmin() {
                       <option value="pending" ${status === "pending" ? "selected" : ""}>Pending</option>
                       <option value="approved" ${status === "approved" ? "selected" : ""}>Approved</option>
                       <option value="declined" ${status === "declined" ? "selected" : ""}>Declined</option>
+                      <option value="completed" ${status === "completed" ? "selected" : ""}>Completed</option>
                     </select>
                     <button class="btn" type="button" data-booking-action="update" data-booking-id="${booking.id}">Update</button>
                   </div>

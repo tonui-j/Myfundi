@@ -69,7 +69,7 @@ const CREATE_BOOKINGS_TABLE_SQL = `
     client_name VARCHAR(120) NOT NULL,
     client_phone VARCHAR(50) NOT NULL,
     description TEXT NOT NULL,
-    status ENUM('pending','approved','declined') NOT NULL DEFAULT 'pending',
+    status ENUM('pending','approved','declined','completed') NOT NULL DEFAULT 'pending',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_bookings_worker_id (worker_id),
@@ -308,9 +308,22 @@ async function normalizeWorkersSchema(conn) {
 async function normalizeBookingsSchema(conn) {
   const [columns] = await conn.query("SHOW COLUMNS FROM bookings");
   const names = new Set(columns.map((c) => String(c.Field || "").toLowerCase()));
+  const statusColumn = columns.find((c) => String(c.Field || "").toLowerCase() === "status");
 
   if (!names.has("client_id")) {
     await conn.query("ALTER TABLE bookings ADD COLUMN client_id BIGINT UNSIGNED NULL AFTER worker_id");
+  }
+
+  const statusType = String(statusColumn?.Type || "").toLowerCase();
+  const hasCompletedStatus =
+    statusType.includes("'pending'") &&
+    statusType.includes("'approved'") &&
+    statusType.includes("'declined'") &&
+    statusType.includes("'completed'");
+  if (!hasCompletedStatus) {
+    await conn.query(
+      "ALTER TABLE bookings MODIFY COLUMN status ENUM('pending','approved','declined','completed') NOT NULL DEFAULT 'pending'"
+    );
   }
 
   await ignoreErrors(conn.query("CREATE INDEX idx_bookings_client_id ON bookings(client_id)"), [
@@ -439,14 +452,28 @@ async function bootstrapDatabase(conn) {
     WHERE r.code = 'admin'
   `);
 
-  const [admins] = await conn.execute("SELECT id FROM clients WHERE username = ? LIMIT 1", ["admin"]);
+  const [admins] = await conn.execute("SELECT id FROM clients WHERE role = 'admin' LIMIT 1");
   if (!admins.length) {
-    const bcrypt = require("bcryptjs");
-    const hash = await bcrypt.hash("adminpass", 10);
-    await conn.execute(
-      "INSERT INTO clients (username, display_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
-      ["admin", "Administrator", "admin@bluecollar.local", hash, "admin"]
-    );
+    const adminUsername = String(process.env.ADMIN_USERNAME || "").trim();
+    const adminDisplayName = String(process.env.ADMIN_DISPLAY_NAME || "Administrator").trim() || "Administrator";
+    const adminEmail = String(process.env.ADMIN_EMAIL || "")
+      .trim()
+      .toLowerCase();
+    const adminPassword = String(process.env.ADMIN_PASSWORD || "");
+    const adminPasswordHash = String(process.env.ADMIN_PASSWORD_HASH || "").trim();
+
+    let hash = adminPasswordHash;
+    if (!hash && adminPassword) {
+      const bcrypt = require("bcryptjs");
+      hash = await bcrypt.hash(adminPassword, 10);
+    }
+
+    if (adminUsername && adminEmail && hash) {
+      await conn.execute(
+        "INSERT INTO clients (username, display_name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
+        [adminUsername, adminDisplayName, adminEmail, hash, "admin"]
+      );
+    }
   }
 
   const [legacyWorkerAccounts] = await conn.query(`
