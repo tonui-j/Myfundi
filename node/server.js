@@ -6,8 +6,9 @@ const fs = require("fs/promises");
 const path = require("path");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const { ROOT_DIR, DATA_DIR, createDbConnection, bootstrapDatabase } = require("./db");
+const { ROOT_DIR, DATA_DIR, createDbConnection, bootstrapDatabase, DB_CONFIG } = require("./db");
 
+const sessionPool = require("mysql2/promise").createPool(DB_CONFIG);
 const sessionStore = new MySQLStore(
   {
     createDatabaseTable: true,
@@ -15,14 +16,7 @@ const sessionStore = new MySQLStore(
     checkExpirationInterval: 15 * 60 * 1000, // prune expired sessions every 15 min
     expiration: 7 * 24 * 60 * 60 * 1000      // session TTL: 7 days
   },
-  process.env.DATABASE_URL
-    ? require("mysql2/promise").createPool(process.env.DATABASE_URL)
-    : require("mysql2/promise").createPool({
-        host: process.env.DB_HOST || "localhost",
-        user: process.env.DB_USER || "root",
-        password: process.env.DB_PASSWORD || "",
-        database: process.env.DB_NAME || "myfundi"
-      })
+  sessionPool
 );
 
 const app = express();
@@ -1727,6 +1721,14 @@ app.listen(PORT, async () => {
   } finally {
     await conn.end();
   }
+
+  try {
+    await sessionStore.createDatabaseTable();
+    console.log("Session store: sessions table ready");
+  } catch (error) {
+    console.error("Session store: failed to initialise sessions table:", error);
+  }
+
   console.log(`MyFundi Node server running at http://localhost:${PORT}`);
 });
 
