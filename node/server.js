@@ -1,11 +1,29 @@
 const express = require("express");
 const session = require("express-session");
+const MySQLStore = require("express-mysql-session")(session);
 const bcrypt = require("bcryptjs");
 const fs = require("fs/promises");
 const path = require("path");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { ROOT_DIR, DATA_DIR, createDbConnection, bootstrapDatabase } = require("./db");
+
+const sessionStore = new MySQLStore(
+  {
+    createDatabaseTable: true,
+    clearExpired: true,
+    checkExpirationInterval: 15 * 60 * 1000, // prune expired sessions every 15 min
+    expiration: 7 * 24 * 60 * 60 * 1000      // session TTL: 7 days
+  },
+  process.env.DATABASE_URL
+    ? require("mysql2/promise").createPool(process.env.DATABASE_URL)
+    : require("mysql2/promise").createPool({
+        host: process.env.DB_HOST || "localhost",
+        user: process.env.DB_USER || "root",
+        password: process.env.DB_PASSWORD || "",
+        database: process.env.DB_NAME || "myfundi"
+      })
+);
 
 const app = express();
 const PORT = Number(process.env.PORT || 8000);
@@ -24,6 +42,7 @@ app.use(
     secret: process.env.SESSION_SECRET || "myfundi-dev-secret-change-me",
     resave: false,
     saveUninitialized: false,
+    store: sessionStore,
     cookie: {
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
