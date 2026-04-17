@@ -1278,10 +1278,7 @@ app.post("/api/bookings", async (req, res) => {
       created_at: new Date().toISOString()
     };
 
-    const bookingsFile = path.join(DATA_DIR, "bookings.json");
-    const all = await readJsonArray(bookingsFile);
-    all.push(booking);
-    await writeJson(bookingsFile, all);
+  
 
     text(res, 200, `Booking saved. ID: ${bookingId}`);
   } catch (_error) {
